@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PQC Migration Report</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #14181f; --muted: #5b6472;
+    --line: #dfe3e9; --pass: #0d7a4a; --fail: #b4232c; --accent: #2b4de0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #11141a; --card: #181c24; --ink: #e8ecf3; --muted: #98a2b3;
+      --line: #2a3038; --pass: #4ac48a; --fail: #ff7b7b; --accent: #8ea2ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 2rem 1.25rem 4rem; background: var(--bg); color: var(--ink);
+         font: 15px/1.55 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 1.9rem; margin: 0 0 .25rem; letter-spacing: -.02em; }
+  h2 { font-size: 1.15rem; margin: 2.25rem 0 .75rem; }
+  .sub { color: var(--muted); margin: 0 0 1.5rem; font-size: .9rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .85rem 1rem; }
+  .card .n { font-size: 1.6rem; font-weight: 650; }
+  .card .l { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: color-mix(in srgb, var(--card) 88%, var(--ink) 12%); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  code, .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .85em; }
+  .pass { color: var(--pass); font-weight: 600; }
+  .fail { color: var(--fail); font-weight: 600; }
+  .pill { display: inline-block; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--line);
+          font-size: .75rem; color: var(--muted); }
+  .note { color: var(--muted); font-size: .85rem; margin-top: .6rem; }
+  footer { margin-top: 3rem; color: var(--muted); font-size: .82rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PQC Migration Report</h1>
+  <p class="sub">
+    Target <code>{{ report.target }}</code> &middot; generated {{ report.generated_at }}
+    &middot; backend <span class="pill">{{ report.backend }}</span>
+  </p>
+
+  <div class="cards">
+    <div class="card"><div class="n">{{ stats.findings }}</div><div class="l">Findings</div></div>
+    <div class="card"><div class="n">{{ stats.files_affected }}</div><div class="l">Files affected</div></div>
+    <div class="card"><div class="n">{{ stats.migrated }}</div><div class="l">Migrated</div></div>
+    <div class="card"><div class="n">{{ stats.not_migrated }}</div><div class="l">Not migrated</div></div>
+    <div class="card">
+      <div class="n {{ 'pass' if stats.all_checks_passed else 'fail' }}">
+        {{ stats.checks_passed }}/{{ stats.checks_run }}
+      </div>
+      <div class="l">Checks passed</div>
+    </div>
+  </div>
+
+  {% if report.context %}
+  <h2>Application context</h2>
+  <div class="scroll"><table>
+    <tr><th>Security level</th><td>{{ report.context.security_level }}</td></tr>
+    <tr><th>Preferred signature scheme</th><td>{{ report.context.prefer_signature_scheme }}</td></tr>
+    <tr><th>Source</th><td><code>{{ report.context.source }}</code></td></tr>
+    {% if report.context.notes %}<tr><th>Notes</th><td>{{ report.context.notes }}</td></tr>{% endif %}
+  </table></div>
+  {% endif %}
+
+  <h2>1. Findings</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>File</th><th>Line</th><th>Algorithm</th><th>Purpose</th>
+      <th>Construct</th><th>Library</th><th>Detector</th></tr></thead>
+    <tbody>
+    {% for f in report.findings %}
+      <tr><td class="mono">{{ f.file }}</td><td>{{ f.line }}</td>
+        <td>{{ f.algorithm | upper }}</td><td>{{ f.purpose }}</td>
+        <td><code>{{ f.matched }}</code></td><td>{{ f.library }}</td><td>{{ f.detector }}</td></tr>
+    {% else %}
+      <tr><td colspan="7">No classical public-key crypto detected.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+
+  <h2>2. Recommendations</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Construct</th><th>Location</th><th>PQC algorithm</th>
+      <th>Standard</th><th>Level</th><th>Rationale</th></tr></thead>
+    <tbody>
+    {% for r in report.recommendations %}
+      <tr><td><code>{{ r.finding.matched }}</code></td>
+        <td class="mono">{{ r.finding.file }}:{{ r.finding.line }}</td>
+        <td><strong>{{ r.pqc_algorithm }}</strong></td>
+        <td>{{ r.nist_standard }}</td><td>{{ r.nist_level }}</td>
+        <td>{{ r.rationale }}</td></tr>
+    {% else %}
+      <tr><td colspan="6">Nothing to recommend.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+
+  <h2>3. Migrations</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Original</th><th>Migrated copy</th><th>Changed</th>
+      <th>Manual review</th><th>Rules applied</th><th>Notes</th></tr></thead>
+    <tbody>
+    {% for m in report.migrations %}
+      <tr><td class="mono">{{ m.original_file }}</td>
+        <td class="mono">{{ m.migrated_file }}</td>
+        <td class="{{ 'pass' if m.changed else 'fail' }}">{{ 'yes' if m.changed else 'no' }}</td>
+        <td>{{ 'yes' if m.manual_review else 'no' }}</td>
+        <td>{{ m.rules_applied | join(', ') or '-' }}</td>
+        <td>{{ m.notes }}</td></tr>
+    {% else %}
+      <tr><td colspan="6">No migration run.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+
+  <h2>4. Verification</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Check</th><th>Result</th></tr></thead>
+    <tbody>
+    {% for name, ok in report.verification.items() %}
+      <tr><td><code>{{ name }}</code></td>
+        <td class="{{ 'pass' if ok else 'fail' }}">{{ 'PASS' if ok else 'FAIL' }}</td></tr>
+    {% else %}
+      <tr><td colspan="2">No checks run.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+
+  <h2>5. Benchmark: classical vs post-quantum</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Algorithm</th><th>Kind</th><th>Standard</th><th>Keygen (ms)</th>
+      <th>Primary op</th><th>ms</th><th>Public key (B)</th><th>Sig / CT (B)</th></tr></thead>
+    <tbody>
+    {% for algorithm, d in report.benchmark.items() %}
+      {% if d.error %}
+      <tr><td>{{ algorithm }}</td><td colspan="7" class="fail">{{ d.error }}</td></tr>
+      {% else %}
+      <tr><td><strong>{{ algorithm }}</strong></td>
+        <td><span class="pill">{{ d.kind }}</span></td>
+        <td>{{ d.standard }}</td><td>{{ d.keygen_ms }}</td>
+        <td>{{ d.operation }}</td><td>{{ d.op_ms }}</td>
+        <td>{{ d.pubkey_bytes }}</td><td>{{ d.sig_or_ct_bytes }}</td></tr>
+      {% endif %}
+    {% else %}
+      <tr><td colspan="8">No benchmark run.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="note">Timings are medians measured on this machine with the
+    <code>{{ report.backend }}</code> backend; sizes are exact byte lengths.</p>
+
+  {% if report.analysis %}
+  <h2>6. Dependency analysis</h2>
+  <div class="scroll"><table>
+    <tr><th>Python files scanned</th><td>{{ report.analysis.python_files }}</td></tr>
+    <tr><th>Files importing crypto libraries</th><td>{{ report.analysis.files_importing_crypto }}</td></tr>
+    {% for name, why in (report.analysis.vulnerable_dependencies or {}).items() %}
+    <tr><th>{{ name }}</th><td>{{ why }}</td></tr>
+    {% endfor %}
+  </table></div>
+  {% endif %}
+
+  <footer>
+    Migration in this phase is rule-based (Project-I).
+    LLM-assisted rewriting of arbitrary code is Project-II.
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "security_level": 3,
+  "prefer_signature_scheme": "ML-DSA",
+  "notes": "Release signing service; long-lived verification keys."
+}
