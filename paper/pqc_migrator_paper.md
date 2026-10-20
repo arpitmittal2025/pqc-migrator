@@ -51,20 +51,20 @@ For three decades the security of digital infrastructure has rested on a small n
 public-key constructions — RSA, elliptic-curve cryptography, and Diffie–Hellman — whose
 hardness assumptions are specific to classical computation. Shor demonstrated in 1994
 that a quantum computer able to maintain sufficient coherent operations solves both
-integer factorisation and the discrete logarithm problem in polynomial time [1]. Every
+integer factorisation and the discrete logarithm problem in polynomial time [11]. Every
 one of those constructions therefore has a known expiry date; what remains uncertain is
 only the date itself.
 
 That uncertainty does not make the problem distant. Encrypted traffic captured today can
 be stored and decrypted once the capability exists, an attack pattern usually described
-as *harvest-now, decrypt-later*. Any data whose confidentiality must outlive the arrival
+as *harvest-now, decrypt-later* [9]. Any data whose confidentiality must outlive the arrival
 of cryptographically relevant quantum hardware — medical records, identity databases,
 state communications, long-lived financial instruments — is therefore already exposed,
 regardless of how strong today's cryptography is against today's adversaries.
 
 NIST completed the standardisation response in August 2024, publishing FIPS 203 (ML-KEM,
-for key encapsulation) [2], FIPS 204 (ML-DSA, for digital signatures) [3] and FIPS 205
-(SLH-DSA, a stateless hash-based signature scheme) [4]. High-quality implementations
+for key encapsulation) [1], FIPS 204 (ML-DSA, for digital signatures) [2] and FIPS 205
+(SLH-DSA, a stateless hash-based signature scheme) [3]. High-quality implementations
 followed quickly. The algorithmic question is, for practical purposes, settled.
 
 The engineering question is not. An organisation that wishes to act on this guidance
@@ -201,21 +201,21 @@ Existing work clusters into four groups, each of which solves part of the proble
 **Cryptographic discovery.** Tools and guidance exist for producing a cryptographic bill
 of materials — an inventory of where cryptography appears in a system. NIST's National
 Cybersecurity Center of Excellence identifies discovery as the necessary first step of any
-migration programme [5]. Inventory, however, is where these efforts stop. Knowing that
+migration programme [4]. Inventory, however, is where these efforts stop. Knowing that
 line 42 calls RSA does not indicate what should replace it, and produces no code.
 
-**Standards and migration guidance.** NIST's preparatory guidance [6] and national
+**Standards and migration guidance.** NIST's preparatory guidance [7] and national
 directives such as CNSA 2.0 establish timelines and set crypto-agility as an objective.
 These documents are, by design, prescriptive about goals and silent about implementation.
 They tell an organisation that it must migrate, not how to migrate a specific repository.
 
 **Post-quantum implementations.** The Open Quantum Safe project and its liboqs library
-[7] made the new primitives broadly available well before standardisation concluded, and
-pure-Python implementations now exist for ML-KEM and ML-DSA [8], [9]. This work supplies
+[10] made the new primitives broadly available well before standardisation concluded, and
+pure-Python implementations now exist for ML-KEM and ML-DSA [5], [6]. This work supplies
 the destination of a migration without addressing the journey.
 
 **Language models for code transformation.** A growing literature applies large language
-models to source-to-source transformation tasks [10]. Results are encouraging on isolated
+models to source-to-source transformation tasks [8]. Results are encouraging on isolated
 functions, and uniformly carry the same caveat: the output requires human verification,
 because a plausible-looking patch and a correct one are indistinguishable without
 execution. Applied naively to cryptographic code, where a silent failure may produce
@@ -395,7 +395,7 @@ exposing each stage individually (`scan`, `recommend`, `migrate`, `verify`, `rep
 composite `run` command that executes the whole pipeline.
 
 Post-quantum operations are provided by `kyber-py` 1.2.0 (ML-KEM) and `dilithium-py` 1.4.0
-(ML-DSA) [8], [9], with liboqs supported as the preferred backend. Classical cryptography
+(ML-DSA) [5], [6], with liboqs supported as the preferred backend. Classical cryptography
 in the sample applications and the classical benchmark baselines use PyCA `cryptography`
 50.0.1. Detection relies on the Python standard library's `ast` module. The test suite
 comprises 70 tests executing in approximately 3.5 seconds.
@@ -650,39 +650,41 @@ reported numbers can be reproduced.
 
 ## References
 
-> *Verify every entry against the published source before submission, and renumber if you
-> add references from your own survey.*
+> *Entries are ordered most-recent first. Verify every one against the published source
+> before submission, and renumber if you add references from your own survey.*
 
-[1] P. W. Shor, "Polynomial-time algorithms for prime factorization and discrete logarithms
-on a quantum computer," *SIAM Journal on Computing*, vol. 26, no. 5, pp. 1484–1509, 1997.
-
-[2] National Institute of Standards and Technology, *Module-Lattice-Based Key-Encapsulation
+[1] National Institute of Standards and Technology, *Module-Lattice-Based Key-Encapsulation
 Mechanism Standard*, FIPS 203, Aug. 2024.
 
-[3] National Institute of Standards and Technology, *Module-Lattice-Based Digital Signature
+[2] National Institute of Standards and Technology, *Module-Lattice-Based Digital Signature
 Standard*, FIPS 204, Aug. 2024.
 
-[4] National Institute of Standards and Technology, *Stateless Hash-Based Digital Signature
+[3] National Institute of Standards and Technology, *Stateless Hash-Based Digital Signature
 Standard*, FIPS 205, Aug. 2024.
 
-[5] National Cybersecurity Center of Excellence, *Migration to Post-Quantum Cryptography*,
-NIST SP 1800-38, National Institute of Standards and Technology.
+[4] National Cybersecurity Center of Excellence, *Migration to Post-Quantum Cryptography*,
+NIST SP 1800-38, National Institute of Standards and Technology. Confirm the volume and
+revision date you cite.
 
-[6] W. Barker, W. Polk, and M. Souppaya, *Getting Ready for Post-Quantum Cryptography:
+[5] G. Pope, "kyber-py: A pure-Python implementation of ML-KEM (FIPS 203)," software
+repository, version 1.2.0.
+
+[6] G. Pope, "dilithium-py: A pure-Python implementation of ML-DSA (FIPS 204)," software
+repository, version 1.4.0.
+
+[7] W. Barker, W. Polk, and M. Souppaya, *Getting Ready for Post-Quantum Cryptography:
 Exploring Challenges Associated with Adopting and Using Post-Quantum Cryptographic
 Algorithms*, NIST Cybersecurity White Paper, 2021.
 
-[7] D. Stebila and M. Mosca, "Post-quantum key exchange for the Internet and the Open Quantum
-Safe project," in *Selected Areas in Cryptography (SAC 2016)*, LNCS vol. 10532, pp. 14–37.
-
-[8] G. Pope, "kyber-py: A pure-Python implementation of ML-KEM (FIPS 203)," software
-repository.
-
-[9] G. Pope, "dilithium-py: A pure-Python implementation of ML-DSA (FIPS 204)," software
-repository.
-
-[10] M. Chen et al., "Evaluating large language models trained on code," arXiv:2107.03374,
+[8] M. Chen et al., "Evaluating large language models trained on code," arXiv:2107.03374,
 2021.
 
-[11] M. Mosca, "Cybersecurity in an era with quantum computers: Will we be ready?," *IEEE
-Security & Privacy*, vol. 16, no. 5, pp. 38–41, 2018.
+[9] M. Mosca, "Cybersecurity in an era with quantum computers: Will we be ready?," *IEEE
+Security & Privacy*, vol. 16, no. 5, pp. 38-41, 2018.
+
+[10] D. Stebila and M. Mosca, "Post-quantum key exchange for the Internet and the Open
+Quantum Safe project," in *Selected Areas in Cryptography (SAC 2016)*, LNCS vol. 10532,
+pp. 14-37.
+
+[11] P. W. Shor, "Polynomial-time algorithms for prime factorization and discrete logarithms
+on a quantum computer," *SIAM Journal on Computing*, vol. 26, no. 5, pp. 1484-1509, 1997.
