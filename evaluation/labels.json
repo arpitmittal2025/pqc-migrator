@@ -1,0 +1,336 @@
+{
+  "files": [
+    "e01_jwt_rs256.py",
+    "e02_paramiko_hostkey.py",
+    "e03_pyopenssl_cert.py",
+    "e04_dynamic_dispatch.py",
+    "e05_indirect_reference.py",
+    "n01_symmetric_only.py",
+    "n02_lookalike_names.py",
+    "n03_documentation_text.py",
+    "n04_already_post_quantum.py",
+    "n05_plain_application.py",
+    "n06_modern_symmetric.py",
+    "nested/p16_service_layer.py",
+    "p01_rsa_oaep.py",
+    "p02_rsa_pss_sign.py",
+    "p03_rsa_pycryptodome.py",
+    "p04_rsa_pkcs1v15_sign.py",
+    "p05_ecdsa_p256.py",
+    "p06_ecdsa_p384.py",
+    "p07_ecdh_exchange.py",
+    "p08_ecdsa_library.py",
+    "p09_dh_handshake.py",
+    "p10_dh_fixed_group.py",
+    "p11_aliased_import.py",
+    "p12_multiline_call.py",
+    "p13_mixed_algorithms.py",
+    "p14_key_loading.py",
+    "p15_unparsable.py",
+    "p17_ed25519_signing.py",
+    "p18_x25519_agreement.py"
+  ],
+  "positive_files": [
+    "nested/p16_service_layer.py",
+    "p01_rsa_oaep.py",
+    "p02_rsa_pss_sign.py",
+    "p03_rsa_pycryptodome.py",
+    "p04_rsa_pkcs1v15_sign.py",
+    "p05_ecdsa_p256.py",
+    "p06_ecdsa_p384.py",
+    "p07_ecdh_exchange.py",
+    "p08_ecdsa_library.py",
+    "p09_dh_handshake.py",
+    "p10_dh_fixed_group.py",
+    "p11_aliased_import.py",
+    "p12_multiline_call.py",
+    "p13_mixed_algorithms.py",
+    "p14_key_loading.py",
+    "p15_unparsable.py",
+    "p17_ed25519_signing.py",
+    "p18_x25519_agreement.py"
+  ],
+  "extended_files": [
+    "e01_jwt_rs256.py",
+    "e02_paramiko_hostkey.py",
+    "e03_pyopenssl_cert.py",
+    "e04_dynamic_dispatch.py",
+    "e05_indirect_reference.py"
+  ],
+  "negative_files": [
+    "n01_symmetric_only.py",
+    "n02_lookalike_names.py",
+    "n03_documentation_text.py",
+    "n04_already_post_quantum.py",
+    "n05_plain_application.py",
+    "n06_modern_symmetric.py"
+  ],
+  "labels": [
+    {
+      "file": "p01_rsa_oaep.py",
+      "line": 10,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p01_rsa_oaep.py",
+      "line": 17,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p02_rsa_pss_sign.py",
+      "line": 8,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p02_rsa_pss_sign.py",
+      "line": 14,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p03_rsa_pycryptodome.py",
+      "line": 8,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p03_rsa_pycryptodome.py",
+      "line": 12,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p04_rsa_pkcs1v15_sign.py",
+      "line": 9,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p04_rsa_pkcs1v15_sign.py",
+      "line": 14,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p05_ecdsa_p256.py",
+      "line": 8,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p05_ecdsa_p256.py",
+      "line": 12,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p05_ecdsa_p256.py",
+      "line": 16,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p06_ecdsa_p384.py",
+      "line": 9,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p06_ecdsa_p384.py",
+      "line": 12,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p07_ecdh_exchange.py",
+      "line": 7,
+      "algorithm": "ecc",
+      "purpose": "key_exchange",
+      "scope": "core"
+    },
+    {
+      "file": "p07_ecdh_exchange.py",
+      "line": 11,
+      "algorithm": "ecc",
+      "purpose": "key_exchange",
+      "scope": "core"
+    },
+    {
+      "file": "p08_ecdsa_library.py",
+      "line": 7,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p09_dh_handshake.py",
+      "line": 7,
+      "algorithm": "dh",
+      "purpose": "key_exchange",
+      "scope": "core"
+    },
+    {
+      "file": "p10_dh_fixed_group.py",
+      "line": 10,
+      "algorithm": "dh",
+      "purpose": "key_exchange",
+      "scope": "core"
+    },
+    {
+      "file": "p11_aliased_import.py",
+      "line": 7,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p12_multiline_call.py",
+      "line": 12,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p13_mixed_algorithms.py",
+      "line": 8,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p13_mixed_algorithms.py",
+      "line": 12,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p13_mixed_algorithms.py",
+      "line": 20,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p13_mixed_algorithms.py",
+      "line": 24,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p14_key_loading.py",
+      "line": 8,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "p15_unparsable.py",
+      "line": 6,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "nested/p16_service_layer.py",
+      "line": 8,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "nested/p16_service_layer.py",
+      "line": 12,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p17_ed25519_signing.py",
+      "line": 7,
+      "algorithm": "ecc",
+      "purpose": "signature",
+      "scope": "core"
+    },
+    {
+      "file": "p18_x25519_agreement.py",
+      "line": 7,
+      "algorithm": "ecc",
+      "purpose": "key_exchange",
+      "scope": "core"
+    },
+    {
+      "file": "e01_jwt_rs256.py",
+      "line": 7,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "extended"
+    },
+    {
+      "file": "e01_jwt_rs256.py",
+      "line": 11,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "extended"
+    },
+    {
+      "file": "e02_paramiko_hostkey.py",
+      "line": 7,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "extended"
+    },
+    {
+      "file": "e03_pyopenssl_cert.py",
+      "line": 8,
+      "algorithm": "rsa",
+      "purpose": "signature",
+      "scope": "extended"
+    },
+    {
+      "file": "e04_dynamic_dispatch.py",
+      "line": 9,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "extended"
+    },
+    {
+      "file": "e04_dynamic_dispatch.py",
+      "line": 10,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "extended"
+    },
+    {
+      "file": "e05_indirect_reference.py",
+      "line": 5,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "core"
+    },
+    {
+      "file": "e05_indirect_reference.py",
+      "line": 9,
+      "algorithm": "rsa",
+      "purpose": "kem",
+      "scope": "extended"
+    }
+  ]
+}

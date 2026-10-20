@@ -10,7 +10,14 @@ import ast
 import os
 from pathlib import Path
 
-from ..models import ALG_RSA, PURPOSE_KEM, PURPOSE_SIGNATURE, Finding
+from ..models import (
+    ALG_ECC,
+    ALG_RSA,
+    PURPOSE_KEM,
+    PURPOSE_KEY_EXCHANGE,
+    PURPOSE_SIGNATURE,
+    Finding,
+)
 from . import patterns as P
 
 SKIP_DIRS = {
@@ -108,8 +115,24 @@ class _CryptoVisitor(ast.NodeVisitor):
         self.findings: list[Finding] = []
         self._seen: set[tuple[str, int, str]] = set()
 
+    def _canonical(self, dotted: str) -> str:
+        """Expand a local alias back to the module it was imported from.
+
+        ``from ...asymmetric import rsa as asym_rsa`` makes ``asym_rsa.x``
+        equivalent to ``cryptography...asymmetric.rsa.x``; without this the
+        renamed import would be invisible to the pattern index.
+        """
+        root, _, rest = dotted.partition(".")
+        origin = self.aliases.get(root)
+        if not origin:
+            return ""
+        return f"{origin}.{rest}" if rest else origin
+
     def _record(self, node: ast.AST, dotted: str) -> None:
         pattern = P.lookup(dotted)
+        if pattern is None:
+            canonical = self._canonical(dotted)
+            pattern = P.lookup(canonical) if canonical else None
         if pattern is None:
             return
         line = getattr(node, "lineno", 0)
@@ -143,6 +166,24 @@ class _CryptoVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+def _refine_ecc_purpose(file_findings: list[Finding]) -> None:
+    """An EC key used only for agreement is key exchange, not signing.
+
+    The pattern table has to pick one default purpose for
+    ``ec.generate_private_key``; the surrounding file decides the real one.
+    """
+    ecc = [f for f in file_findings if f.algorithm == ALG_ECC]
+    if not ecc:
+        return
+    agrees = any(f.purpose == PURPOSE_KEY_EXCHANGE for f in ecc)
+    signs = any(f.matched in {"ec.ECDSA", "Ed25519PrivateKey.generate"} for f in ecc)
+    if agrees and not signs:
+        for finding in ecc:
+            if finding.matched in {"ec.generate_private_key", "ec.SECP256R1",
+                                   "ec.SECP384R1", "ec.SECP521R1"}:
+                finding.purpose = PURPOSE_KEY_EXCHANGE
+
+
 def _refine_rsa_purpose(findings: list[Finding]) -> None:
     """RSA keygen is purpose-neutral; decide per file from how the key is used.
 
@@ -153,6 +194,7 @@ def _refine_rsa_purpose(findings: list[Finding]) -> None:
         by_file.setdefault(finding.file, []).append(finding)
 
     for file_findings in by_file.values():
+        _refine_ecc_purpose(file_findings)
         rsa_findings = [f for f in file_findings if f.algorithm == ALG_RSA]
         if not rsa_findings:
             continue
@@ -221,8 +263,11 @@ def scan_source(source: str, file: str = "<string>") -> list[Finding]:
         visitor.visit(tree)
         findings.extend(visitor.findings)
         seen |= visitor._seen
-
-    findings.extend(_regex_findings(file, lines, aliases, seen))
+    else:
+        # Fallback only. On a file that parses, the AST walk is authoritative;
+        # running the regex sweep as well only matched crypto names appearing
+        # in docstrings, string constants and import statements.
+        findings.extend(_regex_findings(file, lines, aliases, seen))
     _refine_rsa_purpose(findings)
     findings.sort(key=lambda f: (f.file, f.line, f.matched))
     return findings

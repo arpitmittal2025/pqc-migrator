@@ -6,3 +6,5 @@ pqc_out/
 migrated/
 reports/
 .pytest_cache/
+paper/pqc_migrator_paper.html
+evaluation/corpus/__pycache__/

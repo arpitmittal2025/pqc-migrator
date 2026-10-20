@@ -1,0 +1,101 @@
+{
+  "corpus": {
+    "files": 29,
+    "in_scope_files": 18,
+    "extended_files": 5,
+    "clean_files": 6,
+    "core_sites": 31,
+    "extended_sites": 7,
+    "flags_raised": 31,
+    "raw_findings": 36
+  },
+  "headline": {
+    "precision": 1.0,
+    "recall_in_scope": 1.0,
+    "f1_in_scope": 1.0,
+    "recall_extended": 0.0,
+    "legitimate_flags": 31,
+    "spurious_flags": 0,
+    "in_scope_missed": 0,
+    "extended_missed": 7
+  },
+  "per_algorithm": {
+    "dh": {
+      "sites": 2,
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "ecc": {
+      "sites": 14,
+      "true_positives": 14,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "rsa": {
+      "sites": 15,
+      "true_positives": 15,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "purpose_classification": {
+    "evaluated_on": 31,
+    "correct": 31,
+    "accuracy": 1.0,
+    "errors": []
+  },
+  "clean_files": {
+    "total": 6,
+    "with_false_alarms": 0,
+    "files": []
+  },
+  "missed_in_scope": [],
+  "missed_extended": [
+    {
+      "file": "e01_jwt_rs256.py",
+      "line": 7,
+      "algorithm": "rsa"
+    },
+    {
+      "file": "e01_jwt_rs256.py",
+      "line": 11,
+      "algorithm": "rsa"
+    },
+    {
+      "file": "e02_paramiko_hostkey.py",
+      "line": 7,
+      "algorithm": "rsa"
+    },
+    {
+      "file": "e03_pyopenssl_cert.py",
+      "line": 8,
+      "algorithm": "rsa"
+    },
+    {
+      "file": "e04_dynamic_dispatch.py",
+      "line": 9,
+      "algorithm": "rsa"
+    },
+    {
+      "file": "e04_dynamic_dispatch.py",
+      "line": 10,
+      "algorithm": "rsa"
+    },
+    {
+      "file": "e05_indirect_reference.py",
+      "line": 9,
+      "algorithm": "rsa"
+    }
+  ],
+  "spurious": []
+}
