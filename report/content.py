@@ -1204,3 +1204,59 @@ B(("p",
    "in the field is justified. Alongside these, the optimisation module defined in the "
    "architecture remains to be implemented, as does a graphical interface for users who do not "
    "work at the command line."))
+
+
+# ==========================================================================
+# Front-matter boilerplate, rewritten for a three-member team
+# (the template is phrased for a single candidate and assumes a gender)
+# ==========================================================================
+
+SEMESTER = "Fall Semester 2026-2027"
+
+DECLARATION = [
+    "We hereby declare that the project entitled \u201c{title}\u201d submitted by us, for the "
+    "award of the degree of Bachelor of Technology in {programme} to Vellore Institute of "
+    "Technology, is a record of bonafide work carried out by us under the supervision of "
+    "{guide}, {designation}.",
+
+    "We further declare that the work reported in this project has not been submitted and "
+    "will not be submitted, either in part or in full, for the award of any other degree or "
+    "diploma in this institute or any other institute or university.",
+]
+
+CERTIFICATE = [
+    "This is to certify that the project entitled \u201c{title}\u201d submitted by {students}, "
+    "{school}, Vellore Institute of Technology, for the award of the degree of Bachelor of "
+    "Technology in {programme}, is a record of bonafide work carried out by them under my "
+    "supervision during {semester}, as per the VIT code of academic and research ethics.",
+
+    "The contents of this report have not been submitted and will not be submitted either in "
+    "part or in full, for the award of any other degree or diploma in this institute or any "
+    "other institute or university. The project fulfills the requirements and regulations of "
+    "the University and in our opinion meets the necessary standards for submission.",
+]
+
+ACKNOWLEDGEMENTS = [
+    "We are deeply grateful to the management of Vellore Institute of Technology for providing "
+    "us with the opportunity and the facilities to carry out this project. The academic "
+    "environment and the resources made available to us throughout the semester were "
+    "instrumental in allowing this work to be taken from an idea to a working system.",
+
+    "We extend our sincere thanks to Dr. Jaisankar N, Dean of the School of Computer Science "
+    "and Engineering, for the encouragement and the support extended to student research. The "
+    "emphasis placed on building and evaluating real systems, rather than only studying them, "
+    "shaped the direction this project took.",
+
+    "We express our appreciation to {hod}, Head of the Department, for valuable guidance and "
+    "for fostering a collaborative atmosphere in which questions could be raised freely and "
+    "difficulties discussed openly.",
+
+    "We are especially thankful to our project guide, {guide}, {designation}, for dedicated "
+    "mentorship and consistently constructive feedback. The insistence on measuring what we "
+    "claimed, rather than asserting it, changed the shape of this project for the better: the "
+    "evaluation reported in Chapter 7 exists because of that guidance, and it uncovered "
+    "defects in our own implementation that we would otherwise have missed.",
+
+    "Finally, we thank our families and our classmates for their patience and encouragement "
+    "over the course of the semester.",
+]

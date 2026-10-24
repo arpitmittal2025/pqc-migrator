@@ -62,6 +62,20 @@ def drop(par):
     par._element.getparent().remove(par._element)
 
 
+def is_blank(par) -> bool:
+    """Empty of text AND of anchored artwork.
+
+    The VIT logo on the cover is a floating drawing anchored to an otherwise
+    empty paragraph; deleting that paragraph as a spacer removes the logo.
+    """
+    if par.text.strip():
+        return False
+    for tag in ("w:drawing", "w:pict", "w:object"):
+        if par._p.findall(".//" + qn(tag)):
+            return False
+    return True
+
+
 def find(doc, needle, *, start=0, exact=False):
     """Locate a paragraph by substring, or by exact text when exact=True.
 
@@ -75,6 +89,20 @@ def find(doc, needle, *, start=0, exact=False):
         if (text.lower() == needle.lower()) if exact else (needle.lower() in text.lower()):
             return i, p
     return -1, None
+
+
+def repeat_header_row(table):
+    """Repeat the header row when a table runs over a page break."""
+    tr_pr = table.rows[0]._tr.get_or_add_trPr()
+    header = OxmlElement("w:tblHeader")
+    header.set(qn("w:val"), "true")
+    tr_pr.append(header)
+
+
+def no_split(row):
+    """Stop a single row being broken across two pages."""
+    element = OxmlElement("w:cantSplit")
+    row._tr.get_or_add_trPr().append(element)
 
 
 def shade(cell, colour="E8E8E8"):
@@ -109,17 +137,21 @@ class Body:
                         align=WD_ALIGN_PARAGRAPH.CENTER, spacing=1.5, space_after=6)
 
     def chapter_title(self, text):
-        return set_text(self.doc.add_paragraph(), text, size=14, bold=True, caps=True,
-                        align=WD_ALIGN_PARAGRAPH.CENTER, spacing=1.5, space_after=12)
+        p = set_text(self.doc.add_paragraph(), text, size=14, bold=True, caps=True,
+                     align=WD_ALIGN_PARAGRAPH.CENTER, spacing=1.5, space_after=12)
+        p.paragraph_format.keep_with_next = True
+        return p
 
     def h2(self, text):
         p = set_text(self.doc.add_paragraph(), text, size=13, bold=True, spacing=1.5)
         p.paragraph_format.space_before = Pt(12)
+        p.paragraph_format.keep_with_next = True
         return p
 
     def h3(self, text):
         p = set_text(self.doc.add_paragraph(), text, size=12, bold=True, spacing=1.5)
         p.paragraph_format.space_before = Pt(8)
+        p.paragraph_format.keep_with_next = True
         return p
 
     def bullets(self, items, ordered=False):
@@ -133,9 +165,13 @@ class Body:
             p.paragraph_format.first_line_indent = Inches(-0.3)
 
     def table(self, caption, headers, rows, number):
-        set_text(self.doc.add_paragraph(), f"Table {number}: {caption}",
-                 size=11, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER,
-                 spacing=1.0, space_after=4)
+        # Caption sits above the table and must not be orphaned from it.
+        cap = set_text(self.doc.add_paragraph(), f"Table {number}: {caption}",
+                       size=11, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER,
+                       spacing=1.0, space_after=4)
+        cap.paragraph_format.keep_with_next = True
+        cap.paragraph_format.keep_together = True
+
         tbl = self.doc.add_table(rows=1, cols=len(headers))
         tbl.style = "Table Grid"
         tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -146,6 +182,19 @@ class Body:
             cells = tbl.add_row().cells
             for i, value in enumerate(row[: len(headers)]):
                 cell_text(cells[i], value, size=10.5)
+
+        repeat_header_row(tbl)
+        for row in tbl.rows:
+            no_split(row)
+
+        # A short table reads badly when split; push it whole onto the next
+        # page instead. Long tables are left to flow, with the header repeating.
+        if len(tbl.rows) <= 10:
+            for row in tbl.rows[:-1]:
+                for cell in row.cells:
+                    for par in cell.paragraphs:
+                        par.paragraph_format.keep_with_next = True
+
         set_text(self.doc.add_paragraph(), "", size=6, space_after=6)
         return tbl
 
@@ -155,6 +204,7 @@ class Body:
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(8)
         p.paragraph_format.space_after = Pt(4)
+        p.paragraph_format.keep_with_next = True
         if path.is_file():
             p.add_run().add_picture(str(path), width=Inches(width))
         else:
@@ -248,6 +298,86 @@ def fill_front_matter(doc):
             drop(p)
         elif p.text.strip().startswith("Note: Include your project title and student"):
             drop(p)
+
+
+def fill_boilerplate(doc):
+    """Replace the single-candidate declaration, certificate and thanks."""
+    students = ", ".join(f"{name} ({reg})" for reg, name in C.TEAM)
+    fields = dict(title=C.TITLE, programme=C.PROGRAMME, guide=C.GUIDE_NAME,
+                  designation=C.GUIDE_DESIGNATION, students=students,
+                  school=C.SCHOOL, semester=C.SEMESTER, hod=C.HOD)
+
+    def replace_at(needle, text):
+        _, par = find(doc, needle)
+        if par is not None:
+            set_text(par, text.format(**fields), size=12, spacing=1.5,
+                     align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=8)
+            par.paragraph_format.first_line_indent = Inches(0.5)
+            return par
+        return None
+
+    replace_at("hereby", C.DECLARATION[0])
+    replace_at("further declare", C.DECLARATION[1])
+    replace_at("This is to certify", C.CERTIFICATE[0])
+    replace_at("The contents of this report", C.CERTIFICATE[1])
+
+    for par in doc.paragraphs:
+        if par.text.strip() == "Signature of the Candidate":
+            set_text(par, "Signature of the Candidates", size=12, bold=True,
+                     align=WD_ALIGN_PARAGRAPH.RIGHT)
+
+    # Acknowledgements: rewrite the block between the heading and the names.
+    start, _ = find(doc, "ACKNOWLEDGEMENTS", exact=True)
+    stop, _ = find(doc, "Thank you all for your contributions")
+    if start != -1 and stop != -1:
+        for par in list(doc.paragraphs[start + 1: stop + 1]):
+            drop(par)
+        from docx.text.paragraph import Paragraph
+        anchor = doc.paragraphs[start]
+        for text in reversed(C.ACKNOWLEDGEMENTS):
+            element = anchor._element.makeelement(qn("w:p"), {})
+            anchor._element.addnext(element)
+            par = Paragraph(element, anchor._parent)
+            set_text(par, text.format(**fields), size=12, spacing=1.5,
+                     align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=8)
+            par.paragraph_format.first_line_indent = Inches(0.5)
+            if C.HOD in par.text:
+                for run in par.runs:
+                    run.font.color.rgb = TODO
+
+
+def trim_blanks_after(doc, needle, keep=1):
+    """Drop spacer paragraphs following an anchor (used to tighten the cover)."""
+    index, _ = find(doc, needle)
+    if index == -1:
+        return 0
+    blanks = []
+    cursor = index + 1
+    while cursor < len(doc.paragraphs) and is_blank(doc.paragraphs[cursor]):
+        blanks.append(doc.paragraphs[cursor])
+        cursor += 1
+    removed = 0
+    for par in blanks[: max(0, len(blanks) - keep)]:
+        drop(par)
+        removed += 1
+    return removed
+
+
+def trim_blanks_before(doc, needle, keep=1):
+    """Drop spacer paragraphs ahead of an anchor so it stays on its page."""
+    index, _ = find(doc, needle)
+    if index == -1:
+        return 0
+    removed = 0
+    cursor = index - 1
+    blanks = []
+    while cursor >= 0 and is_blank(doc.paragraphs[cursor]):
+        blanks.append(doc.paragraphs[cursor])
+        cursor -= 1
+    for par in blanks[: max(0, len(blanks) - keep)]:
+        drop(par)
+        removed += 1
+    return removed
 
 
 def fill_toc(doc):
@@ -616,10 +746,10 @@ def collapse_blank_runs(doc, threshold=10):
         run.clear()
 
     for par in paragraphs:
-        if par.text.strip() or par._p.findall(qn("w:r")) and par._p.xml.count("w:drawing"):
-            flush(par)
-        else:
+        if is_blank(par):
             run.append(par)
+        else:
+            flush(par)
     flush(None)
     return collapsed
 
@@ -630,6 +760,7 @@ def build() -> Path:
     doc = Document(str(TEMPLATE))
 
     fill_front_matter(doc)
+    fill_boilerplate(doc)
     fill_toc(doc)
     fill_lists(doc)
     fill_abstract(doc)
@@ -637,6 +768,16 @@ def build() -> Path:
     write_body(doc)
     removed = strip_hints(doc)
     collapsed = collapse_blank_runs(doc)
+
+    # The real title runs to four lines where the template allowed one, which
+    # pushes the date off the cover; reclaim the slack under the title.
+    trim_blanks_after(doc, C.TITLE[:40], keep=0)
+
+    # Pull back content that spilled a line onto a page of its own.
+    for needle, keep in (("October 2026", 1),
+                         (C.HOD, 1),
+                         (", ".join(n for _, n in C.TEAM), 1)):
+        trim_blanks_before(doc, needle, keep=keep)
 
     doc.save(OUTPUT)
     print(f"template hints removed: {removed}; blank runs collapsed: {collapsed}")
