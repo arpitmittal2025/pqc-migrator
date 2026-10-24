@@ -9,6 +9,7 @@ from pathlib import Path
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
+from pptx.oxml.ns import qn
 from pptx.util import Emu, Inches, Pt
 
 import content as C
@@ -41,6 +42,83 @@ def text_target(slide, *fragments, top=2.0, height=4.4, left=0.92, width=11.5):
         return shape
     return slide.shapes.add_textbox(
         Inches(left), Inches(top), Inches(width), Inches(height))
+
+
+HEADER_BLUE = RGBColor(0x44, 0x72, 0xC4)
+BAND_LIGHT = RGBColor(0xDE, 0xE6, 0xF2)
+BAND_DARK = RGBColor(0xCC, 0xD7, 0xEA)
+
+
+def add_table(slide, columns, rows, *, left, top, width, height,
+              col_widths=None, header_size=12, body_size=10):
+    """Create a banded table styled like the template's sample image."""
+    shape = slide.shapes.add_table(len(rows) + 1, len(columns),
+                                   Inches(left), Inches(top),
+                                   Inches(width), Inches(height))
+    table = shape.table
+    table.first_row = True
+    table.horz_banding = False  # banding is applied explicitly below
+
+    if col_widths:
+        for index, inches in enumerate(col_widths):
+            table.columns[index].width = Inches(inches)
+
+    def write(cell, text, *, size, bold, colour, fill):
+        cell.fill.solid()
+        cell.fill.fore_color.rgb = fill
+        cell.margin_left = Inches(0.07)
+        cell.margin_right = Inches(0.07)
+        cell.margin_top = Inches(0.03)
+        cell.margin_bottom = Inches(0.03)
+        frame = cell.text_frame
+        frame.word_wrap = True
+        frame.clear()
+        for index, line in enumerate(str(text).split("\n")):
+            para = frame.paragraphs[0] if index == 0 else frame.add_paragraph()
+            para.text = line
+            para.line_spacing = 0.92
+            for run in para.runs:
+                run.font.size = Pt(size)
+                run.font.bold = bold
+                run.font.color.rgb = colour
+
+    for index, heading in enumerate(columns):
+        write(table.cell(0, index), heading, size=header_size, bold=True,
+              colour=RGBColor(0xFF, 0xFF, 0xFF), fill=HEADER_BLUE)
+
+    for r, row in enumerate(rows, start=1):
+        fill = BAND_DARK if r % 2 else BAND_LIGHT
+        for c, value in enumerate(row[: len(columns)]):
+            write(table.cell(r, c), value, size=body_size, bold=False,
+                  colour=RGBColor(0x1A, 0x1A, 0x1A), fill=fill)
+    return table
+
+
+def set_ieee_paragraphs(shape, entries, *, size=11, font="Times New Roman"):
+    """Reference entries: no bullets, serif, italic publication titles."""
+    frame = shape.text_frame
+    frame.clear()
+    frame.word_wrap = True
+    for index, segments in enumerate(entries):
+        para = frame.paragraphs[0] if index == 0 else frame.add_paragraph()
+        para.line_spacing = 0.95
+        para.space_after = Pt(5)
+        # Suppress the inherited bullet: the template's sample has none.
+        # Only one bullet element may appear, so clear any existing one first;
+        # a duplicate <a:buNone/> makes the file unopenable.
+        properties = para._p.get_or_add_pPr()
+        for tag in ("a:buNone", "a:buChar", "a:buAutoNum"):
+            for existing in properties.findall(qn(tag)):
+                properties.remove(existing)
+        properties.append(properties.makeelement(qn("a:buNone"), {}))
+        for text, italic in segments:
+            run = para.add_run()
+            run.text = text
+            run.font.size = Pt(size)
+            run.font.italic = italic
+            run.font.name = font
+            run.font.color.rgb = INK
+    return shape
 
 
 def place(shape, *, left, top, width, height):
@@ -133,16 +211,15 @@ def fill(presentation):
     ], size=15)
 
     # ---------------------------------------------------------------- 5 Lit review
-    set_bullets(text_target(slides[4], "Content Placeholder", top=1.55, height=3.2), [
-        ("Cryptographic discovery \u2014 NCCoE SP 1800-38: inventory is the first step, "
-         "but stops at a catalogue; no recommendation, no code change.", 0),
-        ("Standards and guidance \u2014 FIPS 203/204/205 and NIST white papers define the "
-         "destination and crypto-agility, not a path for existing code.", 0),
-        ("PQC implementations \u2014 liboqs, kyber-py, dilithium-py supply the primitives "
-         "but do not migrate anything.", 0),
-        ("LLM code transformation \u2014 promising on isolated functions, but output "
-         "always requires human verification before it can be trusted.", 0),
-    ], size=15)
+    # The template supplies a picture of an empty five-column table that the
+    # team is expected to replace. Build the real table in its place.
+    for shape in list(slides[4].shapes):
+        if shape.name.startswith(("Content Placeholder", "Picture")):
+            shape._element.getparent().remove(shape._element)
+    add_table(slides[4], C.LIT_COLUMNS, C.LIT_ROWS,
+              left=0.42, top=1.45, width=12.5, height=5.2,
+              col_widths=(2.25, 2.25, 2.45, 2.75, 2.80),
+              header_size=12, body_size=9.5)
 
     # ---------------------------------------------------------------- 6 Gap
     set_bullets(text_target(slides[5], "Content Placeholder"), [
@@ -293,16 +370,10 @@ def fill(presentation):
     # ---------------------------------------------------------------- 14 References
     references = text_target(slides[13], "Rectangle", "Content Placeholder")
     if references is not None:
-        # The template's block starts level with the title; drop it clear.
-        place(references, left=0.70, top=1.45, width=11.9, height=5.2)
-        set_bullets(references, [f"[{i}] {ref.split(' [Confirm')[0]}"
-                                 for i, ref in enumerate(C.REFERENCES[:8], 1)], size=11)
-
-    # Slide 5's layout carries an empty picture placeholder; drop it so the
-    # literature-review textbox is not framed by an empty content box.
-    for shape in list(slides[4].shapes):
-        if shape.name.startswith("Content Placeholder") and not shape.has_text_frame:
-            shape._element.getparent().remove(shape._element)
+        # The template's block starts level with the title; drop it clear, and
+        # follow its sample: plain IEEE entries, serif, no bullets.
+        place(references, left=0.70, top=1.42, width=11.9, height=5.3)
+        set_ieee_paragraphs(references, C.REFERENCES_IEEE, size=10.5)
 
     # ---------------------------------------------------------------- dates
     # The template's date placeholders are auto-updating PowerPoint fields, so

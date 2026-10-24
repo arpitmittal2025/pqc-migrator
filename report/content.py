@@ -1260,3 +1260,99 @@ ACKNOWLEDGEMENTS = [
     "Finally, we thank our families and our classmates for their patience and encouragement "
     "over the course of the semester.",
 ]
+
+
+# ==========================================================================
+# Review-3 slide content that must follow the template's prescribed format
+# ==========================================================================
+
+# Literature review table: the template fixes these five columns.
+LIT_COLUMNS = ["Paper / Source", "Objective", "Methodology", "Pros / Cons", "Findings"]
+
+LIT_ROWS = [
+    [
+        "NIST FIPS 203, 204, 205 (2024)",
+        "Standardise quantum-resistant KEM and signature schemes",
+        "Multi-round public evaluation of lattice and hash-based candidates",
+        "Pro: settles which algorithms to adopt.\nCon: silent on migrating existing code",
+        "ML-KEM, ML-DSA and SLH-DSA with defined parameter sets per security category",
+    ],
+    [
+        "NCCoE, NIST SP 1800-38 \u2014 Migration to PQC",
+        "Define a migration programme for enterprises",
+        "Practice guidance centred on cryptographic discovery and inventory",
+        "Pro: establishes discovery as the first step.\nCon: produces an inventory only",
+        "Knowing where crypto lives does not say what should replace it",
+    ],
+    [
+        "Stebila & Mosca, Open Quantum Safe (SAC 2016); kyber-py, dilithium-py",
+        "Make post-quantum primitives usable in real software",
+        "Open-source reference and optimised implementations",
+        "Pro: production-quality primitives available.\nCon: supplies the destination, not the journey",
+        "Primitives are available and interoperable well ahead of adoption",
+    ],
+    [
+        "Chen et al., Evaluating LLMs trained on code (2021)",
+        "Assess model-driven source-to-source transformation",
+        "Benchmark generated code against functional tests",
+        "Pro: handles code shapes rules cannot match.\nCon: output requires human verification",
+        "A plausible patch is indistinguishable from a correct one without execution",
+    ],
+    [
+        "Mosca (2018); Barker et al., NIST white paper (2021)",
+        "Frame the urgency and organisational readiness problem",
+        "Risk analysis of the harvest-now-decrypt-later threat",
+        "Pro: justifies acting before quantum hardware exists.\nCon: no technical migration path",
+        "Long-lived data is already exposed; migration cannot wait for the threat",
+    ],
+]
+
+# References in IEEE style, split into (text, italic) segments so publication
+# titles are italicised the way the template's sample shows.
+REFERENCES_IEEE = [
+    [("[1] National Institute of Standards and Technology, ", False),
+     ("Module-Lattice-Based Key-Encapsulation Mechanism Standard", True),
+     (", FIPS 203, Gaithersburg, MD, USA, Aug. 2024.", False)],
+
+    [("[2] National Institute of Standards and Technology, ", False),
+     ("Module-Lattice-Based Digital Signature Standard", True),
+     (", FIPS 204, Gaithersburg, MD, USA, Aug. 2024.", False)],
+
+    [("[3] National Institute of Standards and Technology, ", False),
+     ("Stateless Hash-Based Digital Signature Standard", True),
+     (", FIPS 205, Gaithersburg, MD, USA, Aug. 2024.", False)],
+
+    [("[4] National Cybersecurity Center of Excellence, ", False),
+     ("Migration to Post-Quantum Cryptography", True),
+     (", NIST Special Publication 1800-38, Gaithersburg, MD, USA.", False)],
+
+    [("[5] G. Pope, \u201ckyber-py: A pure-Python implementation of ML-KEM "
+      "(FIPS 203),\u201d software repository, version 1.2.0.", False)],
+
+    [("[6] G. Pope, \u201cdilithium-py: A pure-Python implementation of ML-DSA "
+      "(FIPS 204),\u201d software repository, version 1.4.0.", False)],
+
+    [("[7] W. Barker, W. Polk and M. Souppaya, ", False),
+     ("Getting Ready for Post-Quantum Cryptography", True),
+     (", NIST Cybersecurity White Paper, 2021.", False)],
+
+    [("[8] M. Chen et al., \u201cEvaluating large language models trained on "
+      "code,\u201d ", False),
+     ("arXiv preprint", True),
+     (" arXiv:2107.03374, 2021.", False)],
+
+    [("[9] M. Mosca, \u201cCybersecurity in an era with quantum computers: Will "
+      "we be ready?,\u201d ", False),
+     ("IEEE Security & Privacy", True),
+     (", vol. 16, no. 5, pp. 38-41, 2018.", False)],
+
+    [("[10] D. Stebila and M. Mosca, \u201cPost-quantum key exchange for the "
+      "Internet and the Open Quantum Safe project,\u201d in ", False),
+     ("Proc. Selected Areas in Cryptography (SAC 2016)", True),
+     (", LNCS vol. 10532, pp. 14-37.", False)],
+
+    [("[11] P. W. Shor, \u201cPolynomial-time algorithms for prime factorization "
+      "and discrete logarithms on a quantum computer,\u201d ", False),
+     ("SIAM Journal on Computing", True),
+     (", vol. 26, no. 5, pp. 1484-1509, 1997.", False)],
+]
