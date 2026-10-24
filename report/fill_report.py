@@ -62,9 +62,17 @@ def drop(par):
     par._element.getparent().remove(par._element)
 
 
-def find(doc, needle, *, start=0):
+def find(doc, needle, *, start=0, exact=False):
+    """Locate a paragraph by substring, or by exact text when exact=True.
+
+    Exact matching matters for short words: a substring search for "ABSTRACT"
+    also matches the abbreviation entry "AST  Abstract Syntax Tree".
+    """
     for i, p in enumerate(doc.paragraphs):
-        if i >= start and needle.lower() in p.text.lower():
+        if i < start:
+            continue
+        text = p.text.strip()
+        if (text.lower() == needle.lower()) if exact else (needle.lower() in text.lower()):
             return i, p
     return -1, None
 
@@ -364,9 +372,10 @@ def fill_lists(doc):
 
 
 def fill_abstract(doc):
-    index, heading = find(doc, "ABSTRACT")
+    index, heading = find(doc, "ABSTRACT", exact=True)
     if heading is None:
         return
+    heading.paragraph_format.page_break_before = True
     set_text(heading, "ABSTRACT", size=16, bold=True, caps=True,
              align=WD_ALIGN_PARAGRAPH.CENTER, spacing=1.5, space_after=12)
     # remove the formatting hints that follow
@@ -566,7 +575,8 @@ HINTS = (
     "(times new roman",
     "<contents,",
     "one page and not exceeding",
-    "in the chapters, figure caption should come",
+    "(in the chapters, figure caption",
+    "in the chapters, figure caption",
     "note: all the abbreviations",
     "<< ieee, harvard format >>",
     "note: include your project title",
@@ -584,6 +594,36 @@ def strip_hints(doc):
     return removed
 
 
+def collapse_blank_runs(doc, threshold=10):
+    """Turn long runs of spacer paragraphs into a single page break.
+
+    The template pads sections apart with dozens of empty paragraphs. Left in
+    place they produce pages of whitespace once real content is inserted.
+    Short runs are preserved, since those are deliberate signature spacing.
+    """
+    paragraphs = doc.paragraphs
+    run: list = []
+    collapsed = 0
+
+    def flush(next_par):
+        nonlocal collapsed
+        if len(run) >= threshold:
+            for blank in run:
+                drop(blank)
+            if next_par is not None:
+                next_par.paragraph_format.page_break_before = True
+            collapsed += 1
+        run.clear()
+
+    for par in paragraphs:
+        if par.text.strip() or par._p.findall(qn("w:r")) and par._p.xml.count("w:drawing"):
+            flush(par)
+        else:
+            run.append(par)
+    flush(None)
+    return collapsed
+
+
 def build() -> Path:
     if not TEMPLATE.is_file():
         raise SystemExit(f"template not found: {TEMPLATE}")
@@ -596,9 +636,10 @@ def build() -> Path:
     clear_body(doc)
     write_body(doc)
     removed = strip_hints(doc)
+    collapsed = collapse_blank_runs(doc)
 
     doc.save(OUTPUT)
-    print(f"template hints removed: {removed}")
+    print(f"template hints removed: {removed}; blank runs collapsed: {collapsed}")
     return OUTPUT
 
 
