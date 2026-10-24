@@ -43,6 +43,15 @@ def text_target(slide, *fragments, top=2.0, height=4.4, left=0.92, width=11.5):
         Inches(left), Inches(top), Inches(width), Inches(height))
 
 
+def place(shape, *, left, top, width, height):
+    """Pin a shape's geometry in inches (all four values, see note above)."""
+    shape.left = Inches(left)
+    shape.top = Inches(top)
+    shape.width = Inches(width)
+    shape.height = Inches(height)
+    return shape
+
+
 def set_bullets(shape, items, *, size=16, spacing=1.0):
     """items: str, or (text, level), or (text, level, bold)."""
     tf = shape.text_frame
@@ -148,7 +157,9 @@ def fill(presentation):
     ], size=16)
 
     # ---------------------------------------------------------------- 7 Objectives
-    set_bullets(text_target(slides[6], "Content Placeholder"), [
+    objectives = text_target(slides[6], "Content Placeholder")
+    place(objectives, left=0.92, top=1.40, width=11.5, height=2.95)
+    set_bullets(objectives, [
         "Detect RSA, ECC and DH usage with file, line, algorithm and library.",
         "Classify each occurrence as key encapsulation, key exchange or signature.",
         "Recommend a specific NIST parameter set with a written justification.",
@@ -156,22 +167,36 @@ def fill(presentation):
         "Verify by round-trip tests, negative tests and executing migrated code.",
         "Generate JSON, Markdown and HTML reports with a measured benchmark.",
         "Evaluate detection quantitatively against a labelled benchmark.",
-    ], size=14)
+    ], size=13, spacing=0.95)
+
+    # The template's SDG and TRL reference images span the lower band, and the
+    # caption ran behind them. Stack the caption above and the images below.
     sdg = shape_named(slides[6], "TextBox")
     if sdg is not None:
+        place(sdg, left=0.60, top=4.45, width=12.1, height=0.85)
         set_bullets(sdg, [
             ("Identified Sustainable Development Goals:  SDG 9 \u2013 Industry, Innovation "
              "and Infrastructure (primary);  SDG 16 \u2013 Peace, Justice and Strong "
              "Institutions (secondary)", 0, True),
             ("Outcome: Conference (Scopus) \u2014 paper drafted, target venue to be "
-             "finalised", 0, True),
-        ], size=12)
+             "finalised with the guide", 0, True),
+        ], size=11.5, spacing=0.95)
+
+    for name, left in (("Picture 7", 3.55), ("Picture 8", 7.75)):
+        art = shape_named(slides[6], name, need_text=False)
+        if art is not None:
+            ratio = art.width / art.height
+            art.height = Inches(1.45)
+            art.width = int(Inches(1.45) * ratio)
+            art.top = Inches(5.32)
+            art.left = Inches(left)
 
     # ---------------------------------------------------------------- 8 Architecture
     content = text_target(slides[7], "Content Placeholder")
     content.text_frame.clear()
-    content.width = Inches(11.5)
-    content.height = Inches(0.8)
+    # A placeholder that inherits its position from the layout loses that
+    # position the moment only width/height are set, so set all four.
+    place(content, left=0.92, top=1.50, width=11.5, height=0.85)
     set_bullets(content, [
         "Seven independent stages; each communicates only through explicit data records, "
         "so no stage can report an outcome an earlier stage did not produce."
@@ -181,7 +206,7 @@ def fill(presentation):
         width = Inches(7.0)
         slides[7].shapes.add_picture(
             str(picture), left=int((presentation.slide_width - width) / 2),
-            top=Inches(2.55), width=width)
+            top=Inches(2.45), width=width)
 
     # ---------------------------------------------------------------- 9 Functional req
     set_bullets(text_target(slides[8], "Content Placeholder"), [
@@ -215,7 +240,7 @@ def fill(presentation):
 
     # ---------------------------------------------------------------- 11 Results
     content = text_target(slides[10], "Content Placeholder")
-    content.height = Inches(2.1)
+    place(content, left=0.92, top=1.50, width=11.5, height=2.25)
     set_bullets(content, [
         ("Detection benchmark \u2014 29 modules (18 in-scope, 5 adversarial, 6 clean), "
          "38 annotated sites.", 0, True),
@@ -231,7 +256,7 @@ def fill(presentation):
         width = Inches(6.6)
         slides[10].shapes.add_picture(
             str(picture), left=int((presentation.slide_width - width) / 2),
-            top=Inches(4.25), width=width)
+            top=Inches(3.90), width=width)
 
     # ---------------------------------------------------------------- 12 Conclusion
     set_bullets(text_target(slides[11], "Content Placeholder"), [
@@ -268,6 +293,8 @@ def fill(presentation):
     # ---------------------------------------------------------------- 14 References
     references = text_target(slides[13], "Rectangle", "Content Placeholder")
     if references is not None:
+        # The template's block starts level with the title; drop it clear.
+        place(references, left=0.70, top=1.45, width=11.9, height=5.2)
         set_bullets(references, [f"[{i}] {ref.split(' [Confirm')[0]}"
                                  for i, ref in enumerate(C.REFERENCES[:8], 1)], size=11)
 

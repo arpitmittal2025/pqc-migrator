@@ -66,10 +66,40 @@ def to_images(pdf: Path, first=1, last=None, dpi=110) -> list[Path]:
     return out
 
 
+def pptx_to_pdf(pptx: Path) -> Path:
+    import shutil
+    import tempfile
+
+    import pythoncom
+    import win32com.client
+
+    pdf = PREVIEW / (pptx.stem + ".pdf")
+    PREVIEW.mkdir(exist_ok=True)
+    scratch = Path(tempfile.mkdtemp(prefix="pqc_preview_")) / pptx.name
+    shutil.copy2(pptx, scratch)
+
+    pythoncom.CoInitialize()
+    app = win32com.client.DispatchEx("PowerPoint.Application")
+    try:
+        # PowerPoint refuses to open a presentation with WithWindow=0 on some
+        # builds, so open normally and keep it off-screen instead.
+        deck = app.Presentations.Open(str(scratch), ReadOnly=True,
+                                      Untitled=False, WithWindow=False)
+        try:
+            deck.SaveAs(str(pdf.resolve()), 32)  # ppSaveAsPDF
+            print(f"deck has {deck.Slides.Count} slides")
+        finally:
+            deck.Close()
+    finally:
+        app.Quit()
+        pythoncom.CoUninitialize()
+    return pdf
+
+
 if __name__ == "__main__":
     source = Path(sys.argv[1])
     first = int(sys.argv[2]) if len(sys.argv) > 2 else 1
     last = int(sys.argv[3]) if len(sys.argv) > 3 else None
-    pdf = to_pdf(source)
+    pdf = pptx_to_pdf(source) if source.suffix.lower() == ".pptx" else to_pdf(source)
     for image in to_images(pdf, first, last):
         print(image)
