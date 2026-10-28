@@ -110,8 +110,14 @@ def _execute_migrated(directory: Path, timeout: int = 25) -> tuple[str, str]:
     entry = directory / "main.py"
     if not entry.is_file():
         return "unavailable", "no main.py"
+    # Hand the child exactly what this process can import. On a serverless host
+    # the dependency directory is injected into sys.path by the runtime's
+    # bootstrap, so a bare interpreter would not find kyber-py or dilithium-py.
     environment = dict(os.environ)
-    environment["PYTHONPATH"] = str(ROOT) + os.pathsep + environment.get("PYTHONPATH", "")
+    search_path = [str(ROOT)] + [entry for entry in sys.path if entry]
+    seen: set[str] = set()
+    ordered = [p for p in search_path if not (p in seen or seen.add(p))]
+    environment["PYTHONPATH"] = os.pathsep.join(ordered)
     try:
         completed = subprocess.run(
             [sys.executable, "main.py"],
