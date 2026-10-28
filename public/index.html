@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PQC Migrator</title>
+<meta name="description" content="Detects classical cryptography in Python, recommends the NIST post-quantum replacement, rewrites the code, and verifies the result by running it.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🔐</text></svg>">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <h1>PQC Migrator</h1>
+      <span class="sub">Post-quantum migration, verified by execution</span>
+    </div>
+    <span class="pill live" id="backendPill">checking backend…</span>
+    <a href="https://github.com/arpitmittal2025/pqc-migrator" target="_blank" rel="noopener">Source</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h2>Find quantum-vulnerable cryptography, replace it, and prove it still works.</h2>
+    <p>
+      Shor&rsquo;s algorithm breaks RSA, ECC and Diffie&ndash;Hellman. NIST standardised the
+      replacements in 2024. This tool does the migration: it reads Python source, works out
+      what each cryptographic call is <em>for</em>, picks the right NIST algorithm, rewrites
+      the code, and then runs the rewritten program using real ML-KEM and ML-DSA.
+    </p>
+  </section>
+
+  <div class="grid">
+
+    <!-- ------------------------------------------------------- controls -->
+    <aside>
+      <div class="card">
+        <h3>1 &middot; Choose a codebase</h3>
+        <p class="hint">Three sample applications ship with the project.</p>
+        <div class="samples" id="samples"></div>
+
+        <label class="field" for="level">Target NIST security category</label>
+        <div class="range-row">
+          <input type="range" id="level" min="1" max="5" step="1" value="3">
+          <output id="levelOut">3</output>
+        </div>
+
+        <label class="field" for="scheme">Preferred signature family</label>
+        <select id="scheme">
+          <option value="ML-DSA">ML-DSA (FIPS 204) — lattice</option>
+          <option value="SLH-DSA">SLH-DSA (FIPS 205) — hash-based</option>
+        </select>
+
+        <details class="paste">
+          <summary>…or paste your own Python</summary>
+          <label class="field" for="filename">File name</label>
+          <input type="text" id="filename" value="app.py"
+                 style="width:100%;font:inherit;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:.45rem .55rem">
+          <label class="field" for="code">Source</label>
+          <textarea id="code" spellcheck="false" placeholder="from cryptography.hazmat.primitives.asymmetric import rsa&#10;&#10;key = rsa.generate_private_key(public_exponent=65537, key_size=2048)"></textarea>
+          <p class="hint" style="margin:.5rem 0 0">
+            Pasted code is analysed and rewritten, but never executed — only the bundled
+            samples are run, so this page cannot be used to execute arbitrary code.
+          </p>
+        </details>
+
+        <button class="run" id="run">Run the pipeline</button>
+      </div>
+    </aside>
+
+    <!-- -------------------------------------------------------- results -->
+    <section>
+      <div id="error" hidden></div>
+
+      <div class="stages" id="stages" hidden>
+        <div class="stage"><div class="n">Findings</div><div class="v" id="sFindings">–</div></div>
+        <div class="stage"><div class="n">Migrated</div><div class="v" id="sMigrated">–</div></div>
+        <div class="stage"><div class="n">Checks</div><div class="v" id="sChecks">–</div></div>
+        <div class="stage"><div class="n">Review</div><div class="v" id="sReview">–</div></div>
+        <div class="stage"><div class="n">Elapsed</div><div class="v" id="sElapsed">–</div></div>
+      </div>
+
+      <div id="results" hidden>
+        <div class="tabs" role="tablist" id="tabs">
+          <button class="tab" role="tab" data-panel="pFindings" aria-selected="true">1 · Scan</button>
+          <button class="tab" role="tab" data-panel="pRecommend" aria-selected="false">2 · Recommend</button>
+          <button class="tab" role="tab" data-panel="pMigrate" aria-selected="false">3 · Migrate</button>
+          <button class="tab" role="tab" data-panel="pVerify" aria-selected="false">4 · Verify</button>
+          <button class="tab" role="tab" data-panel="pBench" aria-selected="false">5 · Benchmark</button>
+        </div>
+
+        <div class="panel" id="pFindings"></div>
+        <div class="panel" id="pRecommend" hidden></div>
+        <div class="panel" id="pMigrate" hidden></div>
+        <div class="panel" id="pVerify" hidden></div>
+        <div class="panel" id="pBench" hidden></div>
+      </div>
+
+      <div class="empty" id="placeholder">
+        Pick a sample on the left and press <strong>Run the pipeline</strong>.
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>
+      <strong>BCSE497J Project-I</strong> · Arpit Mittal (23BCI0044), Priyanshu Sen (23BCT0040),
+      Vedansh Trivedi (23BCT0056) · Guide: Badrinath N, Associate Professor Grade 2 ·
+      School of Computer Science and Engineering, VIT
+    </p>
+    <p>
+      Migration is rule-based in this phase; LLM-assisted rewriting of code the rules cannot
+      match is Project-II. Every number shown is measured in this request, not stored.
+    </p>
+  </footer>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>

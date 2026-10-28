@@ -1,0 +1,13 @@
+.venv/
+tests/
+evaluation/
+report/
+paper/
+pqc_out/
+out/
+migrated/
+*.docx
+*.pptx
+*.png
+*.pdf
+CLAUDE.md
