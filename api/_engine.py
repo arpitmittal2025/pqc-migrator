@@ -97,14 +97,19 @@ def _write_project(directory: Path, files: dict[str, str]) -> None:
         (directory / safe).write_text(text, encoding="utf-8")
 
 
-def _execute_migrated(directory: Path, timeout: int = 25) -> tuple[bool, str]:
-    """Run a migrated sample app with the framework importable."""
+def _execute_migrated(directory: Path, timeout: int = 25) -> tuple[str, str]:
+    """Run a migrated sample app with the framework importable.
+
+    Returns ("passed" | "failed" | "unavailable", output). The third state
+    matters: a hosting sandbox that forbids spawning a process is not the same
+    as migrated code that does not work, and must not be reported as a failure.
+    """
     import os
     import subprocess
 
     entry = directory / "main.py"
     if not entry.is_file():
-        return False, "no main.py"
+        return "unavailable", "no main.py"
     environment = dict(os.environ)
     environment["PYTHONPATH"] = str(ROOT) + os.pathsep + environment.get("PYTHONPATH", "")
     try:
@@ -113,10 +118,10 @@ def _execute_migrated(directory: Path, timeout: int = 25) -> tuple[bool, str]:
             cwd=str(directory), env=environment,
             capture_output=True, text=True, timeout=timeout,
         )
-    except Exception as exc:  # subprocess unavailable in some sandboxes
-        return False, f"{type(exc).__name__}: {exc}"
+    except Exception as exc:  # no subprocess support in this sandbox
+        return "unavailable", f"{type(exc).__name__}: {exc}"
     output = (completed.stdout + completed.stderr).strip()
-    return completed.returncode == 0, output
+    return ("passed" if completed.returncode == 0 else "failed"), output
 
 
 def run_pipeline(
@@ -195,10 +200,20 @@ def run_pipeline(
                     "framework does not claim it runs."
                 )
             else:
-                passed, output = _execute_migrated(out_dir)
-                execution = {"attempted": True, "passed": passed,
-                             "output": output[-1500:], "reason": ""}
-                verification[f"migrated_app_runs[{sample}]"] = passed
+                state, output = _execute_migrated(out_dir)
+                execution = {
+                    "attempted": state != "unavailable",
+                    "passed": state == "passed",
+                    "output": output[-1500:],
+                    "reason": (
+                        "This host does not allow starting a process, so the migrated "
+                        "application could not be executed here. Run it locally with "
+                        "`pqc-migrator run samples/" + str(sample) + "`."
+                        if state == "unavailable" else ""
+                    ),
+                }
+                if state != "unavailable":
+                    verification[f"migrated_app_runs[{sample}]"] = state == "passed"
 
         # ------------------------------------------------------ benchmark
         benchmark = {}
