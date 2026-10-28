@@ -319,6 +319,17 @@ $("tabs").addEventListener("click", (e) => {
     const info = await api({ action: "backend" });
     $("backendPill").textContent = `backend: ${info.backend} · python ${info.python}`;
     $("backendPill").title = info.note;
+
+    // SLH-DSA needs the liboqs backend. Offering it on a host that cannot run
+    // it would produce failing checks that look like a broken migration, when
+    // the framework is in fact correctly refusing to fake an algorithm.
+    const hasSlh = (info.signature || []).some((a) => a.startsWith("SLH-DSA"));
+    const option = document.querySelector('#scheme option[value="SLH-DSA"]');
+    if (option && !hasSlh) {
+      option.disabled = true;
+      option.textContent = "SLH-DSA (FIPS 205) — needs the liboqs backend";
+      $("schemeNote").hidden = false;
+    }
   } catch {
     $("backendPill").textContent = "backend unavailable";
     $("backendPill").classList.remove("live");

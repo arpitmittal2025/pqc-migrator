@@ -53,6 +53,11 @@
           <option value="ML-DSA">ML-DSA (FIPS 204) — lattice</option>
           <option value="SLH-DSA">SLH-DSA (FIPS 205) — hash-based</option>
         </select>
+        <p class="hint" id="schemeNote" hidden style="margin:.35rem 0 0">
+          SLH-DSA is recommended correctly but cannot be executed here — this host runs the
+          pure-Python backend, which implements ML-KEM and ML-DSA only. The framework raises
+          an error rather than silently substituting a different scheme.
+        </p>
 
         <details class="paste">
           <summary>…or paste your own Python</summary>
