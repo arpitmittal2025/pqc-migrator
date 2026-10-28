@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "outputDirectory": "public",
+  "buildCommand": null,
+  "installCommand": null,
   "functions": {
     "api/analyze.py": {
       "memory": 1024,
